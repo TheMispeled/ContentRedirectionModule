@@ -12,7 +12,7 @@ WUMS_MODULE_EXPORT_NAME("homebrew_content_redirection");
 WUMS_USE_WUT_DEVOPTAB();
 WUMS_DEPENDS_ON(homebrew_functionpatcher);
 
-#define VERSION "v0.2.5"
+#define VERSION "v0.2.7"
 
 DECL_FUNCTION(void, OSCancelThread, OSThread *thread) {
     auto upid = OSGetUPID();

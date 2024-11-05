@@ -8,7 +8,6 @@
 #include <functional>
 #include <map>
 #include <mutex>
-#include <romfs_dev.h>
 #include <string>
 
 struct FSIOThreadData {

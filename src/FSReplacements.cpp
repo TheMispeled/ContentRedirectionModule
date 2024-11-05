@@ -610,6 +610,7 @@ DECL_FUNCTION(void, START_HOOK) {
 }
 
 function_replacement_data_t fs_file_function_replacements[] = {
+        applet_support
         REPLACE_FUNCTION_FOR_PROCESS(__PPCExit, LIBRARY_COREINIT, __PPCExit, FP_TARGET_PROCESS_ALL),
         REPLACE_FUNCTION_FOR_PROCESS(FSOpenFileExAsync, LIBRARY_COREINIT, FSOpenFileExAsync, FP_TARGET_PROCESS_ALL),
         REPLACE_FUNCTION_FOR_PROCESS(FSCloseFileAsync, LIBRARY_COREINIT, FSCloseFileAsync, FP_TARGET_PROCESS_ALL),
@@ -633,6 +634,29 @@ function_replacement_data_t fs_file_function_replacements[] = {
         REPLACE_FUNCTION_FOR_PROCESS(FSRewindDirAsync, LIBRARY_COREINIT, FSRewindDirAsync, FP_TARGET_PROCESS_ALL),
         REPLACE_FUNCTION_FOR_PROCESS(FSMakeDirAsync, LIBRARY_COREINIT, FSMakeDirAsync, FP_TARGET_PROCESS_ALL),
         REPLACE_FUNCTION_FOR_PROCESS(FSChangeDirAsync, LIBRARY_COREINIT, FSChangeDirAsync, FP_TARGET_PROCESS_ALL),
+
+        REPLACE_FUNCTION(FSOpenFileExAsync, LIBRARY_COREINIT, FSOpenFileExAsync),
+        REPLACE_FUNCTION(FSCloseFileAsync, LIBRARY_COREINIT, FSCloseFileAsync),
+        REPLACE_FUNCTION(FSGetStatAsync, LIBRARY_COREINIT, FSGetStatAsync),
+        REPLACE_FUNCTION(FSGetStatFileAsync, LIBRARY_COREINIT, FSGetStatFileAsync),
+        REPLACE_FUNCTION_VIA_ADDRESS_FOR_PROCESS(FSReadFileGeneric, 0x3201C400 + 0x4ecc0, 0x101C400 + 0x4ecc0, FP_TARGET_PROCESS_GAME_AND_MENU),
+        REPLACE_FUNCTION(FSSetPosFileAsync, LIBRARY_COREINIT, FSSetPosFileAsync),
+        REPLACE_FUNCTION(FSGetPosFileAsync, LIBRARY_COREINIT, FSGetPosFileAsync),
+        REPLACE_FUNCTION(FSIsEofAsync, LIBRARY_COREINIT, FSIsEofAsync),
+        REPLACE_FUNCTION_VIA_ADDRESS_FOR_PROCESS(FSWriteFileGeneric, 0x3201C400 + 0x4eec0, 0x101C400 + 0x4eec0, FP_TARGET_PROCESS_GAME_AND_MENU),
+        REPLACE_FUNCTION(FSTruncateFileAsync, LIBRARY_COREINIT, FSTruncateFileAsync),
+        REPLACE_FUNCTION(FSRemoveAsync, LIBRARY_COREINIT, FSRemoveAsync),
+        REPLACE_FUNCTION(FSRenameAsync, LIBRARY_COREINIT, FSRenameAsync),
+        REPLACE_FUNCTION(FSFlushFileAsync, LIBRARY_COREINIT, FSFlushFileAsync),
+        REPLACE_FUNCTION(FSChangeModeAsync, LIBRARY_COREINIT, FSChangeModeAsync),
+
+        REPLACE_FUNCTION(FSOpenDirAsync, LIBRARY_COREINIT, FSOpenDirAsync),
+        REPLACE_FUNCTION(FSReadDirAsync, LIBRARY_COREINIT, FSReadDirAsync),
+        REPLACE_FUNCTION(FSCloseDirAsync, LIBRARY_COREINIT, FSCloseDirAsync),
+        REPLACE_FUNCTION(FSRewindDirAsync, LIBRARY_COREINIT, FSRewindDirAsync),
+        REPLACE_FUNCTION(FSMakeDirAsync, LIBRARY_COREINIT, FSMakeDirAsync),
+        REPLACE_FUNCTION(FSChangeDirAsync, LIBRARY_COREINIT, FSChangeDirAsync),
+        main
 };
 
 uint32_t fs_file_function_replacements_size = sizeof(fs_file_function_replacements) / sizeof(function_replacement_data_t);

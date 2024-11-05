@@ -83,7 +83,7 @@ FSError FSWrapper::FSReadDirWrapper(FSDirectoryHandle handle, FSDirectoryEntry *
         struct dirent *entry_ = readdir(dir);
 
         if (entry_) {
-            if (SkipDeletedFilesInReadDir() && std::string_view(entry_->d_name).starts_with(deletePrefix)) {
+            if (SkipDeletedFilesInReadDir() && starts_with_case_insensitive(entry_->d_name, deletePrefix)) {
                 DEBUG_FUNCTION_LINE_ERR("Skip file file name %s because of the prefix", entry_->d_name);
                 continue;
             }
@@ -98,6 +98,9 @@ FSError FSWrapper::FSReadDirWrapper(FSDirectoryHandle handle, FSDirectoryEntry *
                 if (strcmp(entry_->d_name, ".") == 0 || strcmp(entry_->d_name, "..") == 0) {
                     entry->info.size = 0;
                 } else {
+#ifdef _DIRENT_HAVE_D_STAT
+                    translate_stat(&entry_->d_stat, &entry->info);
+#else
                     struct stat sb {};
                     auto path = string_format("%s/%s", dirHandle->path, entry_->d_name);
                     std::replace(path.begin(), path.end(), '\\', '/');
@@ -120,13 +123,14 @@ FSError FSWrapper::FSReadDirWrapper(FSDirectoryHandle handle, FSDirectoryEntry *
                         result = FS_ERROR_MEDIA_ERROR;
                         break;
                     }
+#endif
                 }
             }
             result = FS_ERROR_OK;
         } else {
             auto err = errno;
             if (err != 0) {
-                DEBUG_FUNCTION_LINE_ERR("[%s] Failed to read dir %08X (handle %08X)", getName().c_str(), dir, handle);
+                DEBUG_FUNCTION_LINE_ERR("[%s] Failed to read dir %08X (handle %08X). errno %d (%s)", getName().c_str(), dir, handle, err, strerror(err));
                 result = FS_ERROR_MEDIA_ERROR;
             }
         }
@@ -229,7 +233,7 @@ FSError FSWrapper::FSOpenFileWrapper(const char *path, const char *mode, FSFileH
         _mode = O_RDONLY;
     } else if (strcmp(mode, "r+") == 0) {
         _mode = O_RDWR;
-    } else if (strcmp(mode, "w") == 0) {
+    } else if (strcmp(mode, "w") == 0 || strcmp(mode, "wb") == 0) {
         _mode = O_WRONLY | O_CREAT | O_TRUNC;
     } else if (strcmp(mode, "w+") == 0) {
         _mode = O_RDWR | O_CREAT | O_TRUNC;
@@ -313,7 +317,7 @@ FSError FSWrapper::FSCloseFileWrapper(FSFileHandle handle) {
 bool FSWrapper::CheckFileShouldBeIgnored(std::string &path) {
     auto asPath = std::filesystem::path(path);
 
-    if (std::string(asPath.filename().c_str()).starts_with(deletePrefix)) {
+    if (starts_with_case_insensitive(asPath.filename().c_str(), deletePrefix)) {
         DEBUG_FUNCTION_LINE_VERBOSE("[%s] Ignore %s, filename starts with %s", getName().c_str(), path.c_str(), deletePrefix.c_str());
         return true;
     }
@@ -659,6 +663,7 @@ bool FSWrapper::IsFileModeAllowed(const char *mode) {
 
     if (pIsWriteable && (strcmp(mode, "r+") == 0 ||
                          strcmp(mode, "w") == 0 ||
+                         strcmp(mode, "wb") == 0 ||
                          strcmp(mode, "w+") == 0 ||
                          strcmp(mode, "a") == 0 ||
                          strcmp(mode, "a+") == 0)) {
@@ -668,8 +673,9 @@ bool FSWrapper::IsFileModeAllowed(const char *mode) {
     return false;
 }
 
+
 bool FSWrapper::IsPathToReplace(const std::string_view &path) {
-    return path.starts_with(pPathToReplace);
+    return starts_with_case_insensitive(path, pPathToReplace);
 }
 
 std::string FSWrapper::GetNewPath(const std::string_view &path) {
